@@ -76,7 +76,7 @@ public class RegisterActivity extends AppCompatActivity {
 //                progressDialog.dismiss();
                 try {
                     JSONObject obj = new JSONObject(response);
-                    FirebaseUser user = auth.getCurrentUser();
+//                    FirebaseUser user = auth.getCurrentUser();
                     if(obj.getString("message").equals("Add User Success"))
                     {
                         Intent i = new Intent(RegisterActivity.this,ActivityLogin.class);
@@ -93,7 +93,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 //Disini bagian jika response jaringan terdapat ganguan/error
 
-                Toast.makeText(getApplicationContext(), "On Error Response", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }){
             @Override

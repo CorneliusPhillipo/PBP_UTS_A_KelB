@@ -19,13 +19,27 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
+
+import uts.uajy.kelompok_b_jualonline.api.UserAPI;
+
+import static com.android.volley.Request.Method.POST;
 
 public class ActivityLogin extends AppCompatActivity {
     TextInputEditText email,password;
@@ -60,9 +74,7 @@ public class ActivityLogin extends AppCompatActivity {
 
 
         if(mFirebaseAuth.getCurrentUser() != null) {
-
            save(mFirebaseAuth.getCurrentUser());
-
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
             finish();
         }
@@ -85,32 +97,6 @@ public class ActivityLogin extends AppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                if(email.getText().toString().equalsIgnoreCase("")){
-//                    Toast.makeText(getApplicationContext(),"Email Tidak boleh kosong",Toast.LENGTH_SHORT).show();
-//                }else if(password.getText().toString().equalsIgnoreCase("")){
-//                    Toast.makeText(getApplicationContext(),"Password tidak boleh kosong",Toast.LENGTH_SHORT).show();
-//                }else if(!isValidEmailId(email.getText().toString().trim())){
-//                    Toast.makeText(getApplicationContext(), "Email Tidak Valid", Toast.LENGTH_SHORT).show();
-//                }else if(password.getText().toString().length()<6){
-//                    Toast.makeText(getApplicationContext(), "Password Harus 6 Karakter", Toast.LENGTH_SHORT).show();
-//                }else{
-////                    Toast.makeText(getApplicationContext(), "Sukses", Toast.LENGTH_SHORT).show();
-//                    String input1 = email.getText().toString();
-//                    String input2 = password.getText().toString();
-//                    mFirebaseAuth.createUserWithEmailAndPassword(input1,input2).addOnCompleteListener(ActivityLogin.this, new OnCompleteListener<com.google.firebase.auth.AuthResult>() {
-//                        @Override
-//                        public void onComplete(@NonNull Task<com.google.firebase.auth.AuthResult> task) {
-//                            if(!task.isSuccessful()) {
-//                                Toast.makeText(getApplicationContext(), "SignUp Unccessfull, Please Try Again", Toast.LENGTH_SHORT).show();
-//                            }else{
-//                                Toast.makeText(getApplicationContext(), "SignUp Sucessfull", Toast.LENGTH_SHORT).show();
-//                                email.setText("");
-//                                password.setText("");
-//                            }
-//                        }
-//                    });
-//                }
-
                 Intent i = new Intent(ActivityLogin.this, RegisterActivity.class);
                 startActivity(i);
             }
@@ -128,22 +114,23 @@ public class ActivityLogin extends AppCompatActivity {
                 }else if(password.getText().toString().length()<6){
                     Toast.makeText(getApplicationContext(), "Password Harus 6 Karakter", Toast.LENGTH_SHORT).show();
                 }else{
-                    String input1 = email.getText().toString();
-                    String input2 = password.getText().toString();
-                    mFirebaseAuth.signInWithEmailAndPassword(input1,input2).addOnCompleteListener(ActivityLogin.this, new OnCompleteListener<com.google.firebase.auth.AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<com.google.firebase.auth.AuthResult> task) {
-                            if(!task.isSuccessful()) {
-                                Toast.makeText(getApplicationContext(), "SignIn Unccessfull, Please Try Again", Toast.LENGTH_SHORT).show();
-                            }else{
-                                createNotificationChannel();
-                                addNotification();
-                                Intent i = new Intent(ActivityLogin.this,MainActivity.class);
-                                startActivity(i);
-                                finish();
-                            }
-                        }
-                    });
+                    String sEmail = email.getText().toString();
+                    String sPassword = password.getText().toString();
+//                    mFirebaseAuth.signInWithEmailAndPassword(input1,input2).addOnCompleteListener(ActivityLogin.this, new OnCompleteListener<com.google.firebase.auth.AuthResult>() {
+//                        @Override
+//                        public void onComplete(@NonNull Task<com.google.firebase.auth.AuthResult> task) {
+//                            if(!task.isSuccessful()) {
+//                                Toast.makeText(getApplicationContext(), "SignIn Unccessfull, Please Try Again", Toast.LENGTH_SHORT).show();
+//                            }else{
+//                                createNotificationChannel();
+//                                addNotification();
+//                                Intent i = new Intent(ActivityLogin.this,MainActivity.class);
+//                                startActivity(i);
+//                                finish();
+//                            }
+//                        }
+//                    });
+                    loginUser(sEmail, sPassword);
                 }
             }
         });
@@ -182,7 +169,7 @@ public class ActivityLogin extends AppCompatActivity {
     private void addNotification(){
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_background)
-                .setContentTitle("Hello")
+                .setContentTitle("Login Success")
                 .setContentText("Welcome Back")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
@@ -192,5 +179,65 @@ public class ActivityLogin extends AppCompatActivity {
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(0,builder.build());
+    }
+
+
+    public void loginUser(String email, String password){
+        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+
+        //Memulai membuat permintaan request menghapus data ke jaringan
+
+        StringRequest stringRequest = new StringRequest(POST, UserAPI.URL_LOGIN, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                //Disini bagian jika response jaringan berhasil tidak terdapat ganguan/error
+//                progressDialog.dismiss();
+                try {
+                    JSONObject obj = new JSONObject(response);
+                    if(obj.getString("message").equals("Login Success"))
+                    {
+                        createNotificationChannel();
+                        addNotification();
+                        Toast.makeText(ActivityLogin.this, "User ID : "+obj.getString("user"), Toast.LENGTH_SHORT).show();
+                        saveUserId(obj.getString("user"));
+                        Intent i = new Intent(ActivityLogin.this,MainActivity.class);
+                        startActivity(i);
+                        finish();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //Disini bagian jika response jaringan terdapat ganguan/error
+                Toast.makeText(getApplicationContext(), "Masuk error response", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams()
+            {
+                /*
+                    Disini adalah proses memasukan/mengirimkan parameter key dengan data value,
+                    dan nama key nya harus sesuai dengan parameter key yang diminta oleh jaringan
+                    API.
+                */
+                Map<String, String>  params = new HashMap<String, String>();
+                params.put("email", email);
+                params.put("password", password);
+                return params;
+            }
+        };
+        //Disini proses penambahan request yang sudah kita buat ke reuest queue yang sudah dideklarasi
+        queue.add(stringRequest);
+    }
+
+    public void saveUserId(String id) {
+        SharedPreferences sharedPreferences = getSharedPreferences("id_user",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("id_user",id);
+        editor.commit();
     }
 }

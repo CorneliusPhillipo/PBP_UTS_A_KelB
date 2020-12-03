@@ -185,8 +185,6 @@ public class Cart_Fragment extends Fragment {
             @Override
             public void onResponse(JSONObject response) {
                 //Disini bagian jika response jaringan berhasil tidak terdapat ganguan/error
-
-
                 try {
 
                     if(!listCart.isEmpty() && !listTransaksi.isEmpty()) {
