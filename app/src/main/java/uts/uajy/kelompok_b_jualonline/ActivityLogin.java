@@ -57,8 +57,7 @@ public class ActivityLogin extends AppCompatActivity {
         signin = findViewById(R.id.signin);
         signup = findViewById(R.id.signup);
 
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-        finish();
+
 
         if(mFirebaseAuth.getCurrentUser() != null) {
 
@@ -111,6 +110,7 @@ public class ActivityLogin extends AppCompatActivity {
 //                        }
 //                    });
 //                }
+
                 Intent i = new Intent(ActivityLogin.this, RegisterActivity.class);
                 startActivity(i);
             }

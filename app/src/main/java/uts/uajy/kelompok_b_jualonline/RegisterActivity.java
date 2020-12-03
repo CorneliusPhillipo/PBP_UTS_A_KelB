@@ -15,6 +15,8 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +32,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     private TextInputEditText txtInputNamaDepan, txtInputNamaBelakang, txtInputAlamat, txtInputTanggalLahir, txtInputNomorTelepon, txtInputEmail, txtInputPassword;
     private MaterialButton btnRegisterF;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseAuth auth;
 
     private String namaDepan, namaBelakang, alamat, tanggalLahir, nomorTelepon, email, passowrd;
 
@@ -72,6 +76,7 @@ public class RegisterActivity extends AppCompatActivity {
 //                progressDialog.dismiss();
                 try {
                     JSONObject obj = new JSONObject(response);
+                    FirebaseUser user = auth.getCurrentUser();
                     if(obj.getString("message").equals("Add User Success"))
                     {
                         Intent i = new Intent(RegisterActivity.this,ActivityLogin.class);
